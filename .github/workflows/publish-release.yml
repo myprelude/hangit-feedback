@@ -1,0 +1,55 @@
+name: Publish verified Hang It downloads
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/publish-release.yml']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Fetch verified public installation packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir packages
+          cd packages
+          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-macOS-20261108.29-arm64.zip -o HangIt-macOS-20261108.29-arm64.zip
+          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-Windows-0.1.0-preview.4-x64.zip -o HangIt-Windows-0.1.0-preview.4-x64.zip
+          cat > SHA256SUMS.txt <<'SUMS'
+          44615d1c0ca8dc0389101e80dacc30febf68c31533fd286c11bb3eabc6ea8d5e  HangIt-macOS-20261108.29-arm64.zip
+          c3ad38b5f48fbdfe96466f573b6f9ffd47dd5938242f401e267a7001a21cf0e7  HangIt-Windows-0.1.0-preview.4-x64.zip
+          SUMS
+          sha256sum --check SHA256SUMS.txt
+          unzip -t HangIt-macOS-20261108.29-arm64.zip > /dev/null
+          unzip -t HangIt-Windows-0.1.0-preview.4-x64.zip > /dev/null
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          挂起来 · 双平台预览版
+
+          - macOS：Apple Silicon，构建 20261108.29。
+          - Windows：Intel / AMD x64，0.1.0-preview.4。
+          - Windows 新增富文本与正文插图、独立卡片尺寸、叠放分组、弹性吊牌、文件右键上绳和备份导入。
+          - Windows Server 2022 / 2025 各三轮原生回归通过；Windows 11 真机多屏、高 DPI 与触控板仍在验收范围。
+          - 当前 macOS 包为本地签名、未公证；Windows 包未做发布者代码签名。浏览器或组织策略仍可能限制下载。
+          - 数据保存在本地，Mac 与 Windows 资料暂不互通，没有自动同步。
+
+          使用方法：完整解压安装包，参阅包内说明。更新前备份重要资料。
+          官网及备用下载：https://www.aixiaolaohu.com/hangit/
+          问题反馈：https://github.com/myprelude/hangit-feedback/issues
+
+          所有安装包均与官网发布文件保持一致，SHA256SUMS.txt 可用于校验。
+          NOTES
+          if gh release view preview-2026.11.09 > /dev/null 2>&1; then
+            echo 'Release already exists; refusing to replace published files.'
+            exit 0
+          fi
+          gh release create preview-2026.11.09 packages/*.zip packages/SHA256SUMS.txt --title '挂起来 · 2026.11.09 预览版' --notes-file notes.md --prerelease
