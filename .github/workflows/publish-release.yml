@@ -16,15 +16,15 @@ jobs:
           set -euo pipefail
           mkdir packages
           cd packages
-          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-macOS-20261110.2-arm64.zip -o HangIt-macOS-20261110.2-arm64.zip
-          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-Windows-0.1.0-preview.5-x64.zip -o HangIt-Windows-0.1.0-preview.5-x64.zip
+          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-macOS-20261110.9-arm64.zip -o HangIt-macOS-20261110.9-arm64.zip
+          curl --fail --location --proto '=https' --retry 3 --max-time 90 https://www.aixiaolaohu.com/hangit/downloads/HangIt-Windows-0.1.0-preview.7-x64.zip -o HangIt-Windows-0.1.0-preview.7-x64.zip
           cat > SHA256SUMS.txt <<'SUMS'
-          b4ff6da05af291b4c84a78f2bf998f5dff780992adfc8e24b918551681220510  HangIt-macOS-20261110.2-arm64.zip
-          1fabf301f64a48384e5b478a513a535277a8051a16916e0b9941175c96640483  HangIt-Windows-0.1.0-preview.5-x64.zip
+          3c32987562ec351f92fc6b41ffba291779222ac06fef190d568499f21753ed23  HangIt-macOS-20261110.9-arm64.zip
+          dadeee934fff08587eb249e2723a8c24a60003183daaa4966504a820f7640411  HangIt-Windows-0.1.0-preview.7-x64.zip
           SUMS
           sha256sum --check SHA256SUMS.txt
-          unzip -t HangIt-macOS-20261110.2-arm64.zip > /dev/null
-          unzip -t HangIt-Windows-0.1.0-preview.5-x64.zip > /dev/null
+          unzip -t HangIt-macOS-20261110.9-arm64.zip > /dev/null
+          unzip -t HangIt-Windows-0.1.0-preview.7-x64.zip > /dev/null
       - name: Publish preview release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -35,17 +35,17 @@ jobs:
           cat > notes.md <<'NOTES'
           挂起来 · 双平台预览版
 
-          - macOS 1.0.0（构建 20261110.2），Apple Silicon。
-          - Windows 0.1.0-preview.5，Intel / AMD x64。
-          - 分组和固定区底栏新增或统一垃圾桶。确认移入垃圾箱时可选择「下次不提醒」，误删可在全部卡片中恢复。
-          - macOS 从卡片打开应用时收起挂绳，直接退出应用后可回到原位置，并高亮对应项目。
+          - macOS 1.0.0（构建 20261110.9），Apple Silicon。
+          - Windows 0.1.0-preview.7，Intel / AMD x64。
+          - 紧凑顶部入口：显示 CPU、卡片和分组数量；悬停唤醒入口，点击展开或收起绳子，闲置后自动淡出。
+          - 两端补齐顶部入口交互及低开销动画；四套主题吊绳居中，修复拖动吊牌时的绳子显示。
 
           macOS 包尚未通过 Apple 公证。Windows 包未做发布者代码签名。请完整解压，安装前可比对附件 SHA-256 校验值。
 
           [官网下载及 Mac 首次打开指引](https://www.aixiaolaohu.com/hangit/#download) · [问题反馈](https://github.com/myprelude/hangit-feedback/issues)
           NOTES
-          if gh release view preview-2026.11.10 > /dev/null 2>&1; then
+          if gh release view preview-2026.11.10.9 > /dev/null 2>&1; then
             echo 'Release already exists; refusing to replace published files.'
             exit 0
           fi
-          gh release create preview-2026.11.10 packages/HangIt-macOS-20261110.2-arm64.zip packages/HangIt-Windows-0.1.0-preview.5-x64.zip packages/SHA256SUMS.txt --title '挂起来 · 2026.11.10 预览版' --notes-file notes.md --prerelease
+          gh release create preview-2026.11.10.9 packages/HangIt-macOS-20261110.9-arm64.zip packages/HangIt-Windows-0.1.0-preview.7-x64.zip packages/SHA256SUMS.txt --title '挂起来 · 2026.11.10 紧凑入口预览版' --notes-file notes.md --prerelease
